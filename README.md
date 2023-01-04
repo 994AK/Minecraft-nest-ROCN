@@ -12,4 +12,6 @@ yarn run start:dev
 请使用
 ```js
 prisma migrate dev
+
+prisma generate
 ```

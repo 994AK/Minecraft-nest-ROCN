@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { GirlModule } from './girl/girl.module';
-import { UserModule } from './user/user.module';
+import { GirlModule } from './modules/girl/girl.module';
+import { UserModule } from './modules/user/user.module';
+import { MinecraftModule } from './modules/minecraft/minecraft.module';
 
 @Module({
-  imports: [GirlModule, UserModule],
+  imports: [GirlModule, UserModule, MinecraftModule],
   controllers: [],
   providers: [],
 })
