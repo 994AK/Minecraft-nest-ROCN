@@ -14,4 +14,6 @@ yarn run start:dev
 prisma migrate dev
 
 prisma generate
+
+prisma format 格式化数据代码
 ```

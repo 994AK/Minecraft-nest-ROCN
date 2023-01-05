@@ -7,119 +7,98 @@ export class UserService {
 
   //用户注册
   async createUser(data) {
-    // 邮箱不能为空
-    if (!data.email) {
-      return {
-        code: '2',
-        data: null,
-        msg: '邮箱不能为空',
-      };
-    }
-
-    // 用户名不能为空
-    if (!data.name) {
-      return {
-        code: '2',
-        data: null,
-        msg: '用户名不能为空',
-      };
-    }
-
-    // 先查询用户是否存在
-    const getUser = await this.prisma.user.findMany({
-      where: {
-        OR: [{ email: data.email }, { name: data.name }],
-      },
-    });
-
-    if (!getUser.length) {
-      const userCreate = await this.prisma.user.create({
-        data,
+    try {
+      //查询是否有当前用户
+      const findUser = await this.prisma.user.findMany({
+        where: {
+          OR: [
+            {
+              name: {
+                contains: data.name,
+              },
+            },
+            {
+              email: {
+                contains: data.email,
+              },
+            },
+          ],
+        },
       });
 
+      if (!findUser.length) {
+        //注册模块
+        const userCreate = await this.prisma.user.create({
+          data,
+        });
+        return {
+          code: 1,
+          msg: '注册成功',
+          data: userCreate,
+        };
+      } else {
+        return {
+          code: 2,
+          msg: '该用户已被注册',
+          data: null,
+        };
+      }
+    } catch (err) {
       return {
-        code: '1',
-        data: userCreate,
-        msg: '添加用户成功',
-      };
-    } else {
-      return {
-        code: '2',
+        code: 0,
+        msg: '未知错误',
         data: null,
-        msg: '用户已存在',
       };
     }
   }
 
   //用户登陆
-  async loginUser(data) {
-    if (!data.name) {
+  async loginUser(data: { username: string; password: string }) {
+    try {
+      const login = await this.prisma.authenticate.findUnique({
+        where: {
+          login: data,
+        },
+        select: {
+          userInfo: true,
+        },
+      });
       return {
-        code: '2',
+        code: 1,
+        msg: '登陆成功',
+        data: {
+          ...login.userInfo,
+        },
+      };
+    } catch (err) {
+      return {
+        code: 2,
+        msg: '登陆失败,请检查用户名与密码',
         data: null,
-        msg: '用户名不能为空',
       };
     }
-
-    if (!data.password) {
-      return {
-        code: '2',
-        data: null,
-        msg: '密码不能为空',
-      };
-    }
-
-    const login = await this.prisma.user.findMany({
-      where: {
-        AND: [{ name: data.name }, { password: data.password }],
-      },
-    });
-
-    if (login.length === 0) {
-      return {
-        code: '2',
-        data: null,
-        msg: '请检查下用户账号密码是否正确?',
-      };
-    }
-
-    // 删除密码信息
-    delete login[0]?.password;
-    // 删除邮箱信息
-    delete login[0]?.email;
-
-    return {
-      code: '1',
-      data: login[0],
-      msg: '登陆成功',
-    };
   }
 
   //查询用户信息
   async findUserById(query) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id: Number(query.id),
-      },
-    });
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: Number(query.id),
+        },
+      });
 
-    if (!user) {
       return {
-        code: '2',
+        code: 1,
+        data: user,
+        msg: '查询成功',
+      };
+    } catch (err) {
+      return {
+        code: 2,
         data: null,
-        msg: '没有这个人',
+        msg: '查询失败,没有这个人',
       };
     }
-
-    // 删除密码信息
-    delete user?.password;
-    // 删除邮箱信息
-    delete user?.email;
-
-    return {
-      code: '1',
-      data: user,
-      msg: '查询成功',
-    };
   }
 }
