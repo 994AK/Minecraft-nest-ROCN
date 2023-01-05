@@ -11,9 +11,12 @@ yarn run start:dev
 
 请使用
 ```js
+prisma format  格式化数据代码
+
 prisma migrate dev
 
-prisma generate
+prisma db push
 
-prisma format 格式化数据代码
+
+prisma generate
 ```
