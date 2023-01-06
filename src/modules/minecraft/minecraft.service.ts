@@ -37,12 +37,12 @@ export class MinecraftService {
     }
   }
 
-  async getMinecraftSign() {
+  async getMinecraftSign(body) {
     //查询签到用户
     const findList = await this.prisma.userSign.findMany({
       where: {
         //必须是存在的用户
-        userId: 1,
+        userId: body.userId,
       },
     });
 
@@ -78,19 +78,19 @@ export class MinecraftService {
       if (date(singLogList[singLogList.length - 1].signTime)) {
         const signLogin = await this.prisma.userSignLog.create({
           data: {
-            signReward: '111111',
-            userID: 1,
+            signReward: body.signReward,
+            userID: body.userId,
           },
         });
 
         return {
-          code: '1',
+          code: 1,
           msg: '签到成功',
           data: signLogin,
         };
       } else {
         return {
-          code: '2',
+          code: 2,
           msg: '你今天签到了',
           data: null,
         };
@@ -98,33 +98,46 @@ export class MinecraftService {
     }
 
     //首次签到
-    const sing = await this.prisma.userSign.create({
-      data: {
-        userId: 1,
-        seriesDays: 1,
-        showSign: true,
-        UserSignLog: {
-          create: [
-            {
-              signReward: '111111',
-              userID: 1,
-            },
-          ],
+    try {
+      const sing = await this.prisma.userSign.create({
+        data: {
+          userId: body.userId,
+          //默认连续签到1次
+          seriesDays: 1,
+          //是否签到了
+          showSign: true,
+          UserSignLog: {
+            create: [
+              {
+                signReward: body.signReward,
+                userID: body.userId,
+              },
+            ],
+          },
+          SignConfig: {
+            create: [
+              {
+                userId: body.userId,
+                mark: '抽奖箱1',
+              },
+            ],
+          },
         },
-        SignConfig: {
-          create: [
-            {
-              userId: 1,
-              mark: '抽奖箱1',
-            },
-          ],
+        include: {
+          User: true,
         },
-      },
-    });
-    return {
-      code: '1',
-      msg: '首次签到成功',
-      data: sing,
-    };
+      });
+      return {
+        code: 1,
+        msg: '首次签到成功',
+        data: sing,
+      };
+    } catch (e) {
+      return {
+        code: 2,
+        msg: '没有该用户',
+        data: null,
+      };
+    }
   }
 }

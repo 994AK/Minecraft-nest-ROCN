@@ -36,7 +36,7 @@ model Authenticate {
 
 model UserSign {
   id          Int           @id @default(autoincrement())
-  // 签到次数
+  // 连续签到次数
   seriesDays  Int
   showSign    Boolean       @default(false)
   User        User?         @relation(fields: [userId], references: [id])

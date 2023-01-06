@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { MinecraftService } from './minecraft.service';
 @Controller('minecraft')
 export class MinecraftController {
@@ -11,8 +11,8 @@ export class MinecraftController {
   }
 
   //服务器签到状态
-  @Get('sign')
-  getMinecraftSign() {
-    return this.userService.getMinecraftSign();
+  @Post('sign')
+  getMinecraftSign(@Body() body: { userId: string; signReward: string }) {
+    return this.userService.getMinecraftSign(body);
   }
 }
