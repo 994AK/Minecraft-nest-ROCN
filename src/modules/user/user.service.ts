@@ -38,20 +38,11 @@ export class UserService {
       await this.authenticateRepository.save(authenticate);
 
       return {
-        code: 1,
         data: saveUser,
         msg: '用户注册成功',
       };
     }
-
-    // 查询到用户
-    if (findUser.length) {
-      return {
-        code: 2,
-        data: null,
-        msg: '该用户已被注册',
-      };
-    }
+    return { msg: '用户已存在' };
   }
 
   //用户登陆
@@ -68,22 +59,12 @@ export class UserService {
       },
     });
 
-    if (findUser.length) {
-      return {
-        code: 1,
-        msg: '登陆成功',
-        data: {
-          // 返回user表信息
-          ...findUser[0].user,
-        },
-      };
-    }
-
-    return {
-      code: 2,
-      msg: '查不到该用户',
-      data: null,
-    };
+    return findUser.length
+      ? {
+          msg: '登陆成功',
+          data: findUser[0].user,
+        }
+      : { msg: '请检查用户名或密码' };
   }
 
   //查询用户信息
@@ -94,12 +75,6 @@ export class UserService {
       },
     });
 
-    if (findUser.length) {
-      return {
-        code: 1,
-        msg: '查询成功',
-        data: findUser[0],
-      };
-    }
+    return findUser.length ? { data: findUser[0] } : { msg: '查询不到' };
   }
 }
