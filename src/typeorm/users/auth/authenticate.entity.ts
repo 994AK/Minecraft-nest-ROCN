@@ -6,16 +6,19 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { Authenticate } from './authenticate.entity';
-
+import { User } from '../user/user.entity';
 @Entity()
-export class User {
+export class Authenticate {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  name: string;
+  username: string;
 
   @Column()
-  email: string;
+  password: string;
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: User;
 }

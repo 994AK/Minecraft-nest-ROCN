@@ -1,10 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { queryFull } from 'minecraft-server-util';
 import { PrismaService } from '../../prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../../typeorm/users/user/user.entity';
+import { DailyCheckInsEntity } from '../../typeorm/users/sign/daily_check_ins.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class MinecraftService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+
+    @InjectRepository(DailyCheckInsEntity)
+    private dailyEntityRepository: Repository<DailyCheckInsEntity>,
+  ) {}
   async getMinecraftState() {
     const options = {
       sessionID: 1, // a random 32-bit signed number, optional
@@ -37,107 +48,58 @@ export class MinecraftService {
     }
   }
 
-  async getMinecraftSign(body) {
-    //查询签到用户
-    const findList = await this.prisma.userSign.findMany({
-      where: {
-        //必须是存在的用户
-        userId: body.userId,
-      },
-    });
+  async getMinecraftSign({ userId, notes }: { userId: number; notes: string }) {
+    //查询到用户
+    const user = await this.usersRepository.findOneBy({ id: userId });
 
-    // 签到数据已存在
-    if (findList.length > 0) {
-      const date = (date) => {
-        //签到日期
-        const yesterday = new Date(Date.parse(date));
-        //今天
-        const today = new Date(Date.now());
-
-        return Number(today.getDate()) > Number(yesterday.getDate());
-      };
-
-      // 该用户的签到日志
-      const singLogList = await this.prisma.userSignLog.findMany({
-        where: {
-          userID: findList[0].userId,
+    //查询到用户进行签到处理
+    if (user) {
+      const userSign = await this.dailyEntityRepository.findOne({
+        where: { user: user },
+        relations: {
+          user: true,
         },
       });
 
-      //更新签到次数
-      await this.prisma.userSign.update({
-        where: {
-          userId: findList[0].userId,
-        },
-        data: {
-          seriesDays: singLogList.length,
-        },
-      });
+      const daily = new DailyCheckInsEntity();
 
-      // 已经签到过的用户 true > 没签到
-      if (date(singLogList[singLogList.length - 1].signTime)) {
-        const signLogin = await this.prisma.userSignLog.create({
-          data: {
-            signReward: body.signReward,
-            userID: body.userId,
-          },
-        });
+      //首次签到 - 没有记录的
+      if (!userSign) {
+        daily.numSign = 1;
+        daily.notes = notes;
+        daily.user = user;
+        await this.dailyEntityRepository.save(daily);
+        return { data: user, msg: '签到成功' };
+      }
 
-        return {
-          code: 1,
-          msg: '签到成功',
-          data: signLogin,
+      //有签到信息
+      if (userSign) {
+        //处理是否符合今天的日期
+        const date = (date) => {
+          //签到日期
+          const yesterday = new Date(Date.parse(date));
+          //今天
+          const today = new Date(Date.now());
+
+          return Number(today.getDate()) > Number(yesterday.getDate());
         };
-      } else {
+
+        // 判断今天是否签到了
+        if (!date(userSign.updatedDate)) return { msg: '今天你已经签到了' };
+
+        userSign.numSign = userSign.numSign + 1;
+        userSign.notes = notes;
+
+        //更新数据
+        const updateSign = await this.dailyEntityRepository.save(userSign);
+
         return {
-          code: 2,
-          msg: '你今天签到了',
-          data: null,
+          data: updateSign,
+          msg: '你已经签到了' + updateSign.numSign + '天',
         };
       }
     }
 
-    //首次签到
-    try {
-      const sing = await this.prisma.userSign.create({
-        data: {
-          userId: body.userId,
-          //默认连续签到1次
-          seriesDays: 1,
-          //是否签到了
-          showSign: true,
-          UserSignLog: {
-            create: [
-              {
-                signReward: body.signReward,
-                userID: body.userId,
-              },
-            ],
-          },
-          SignConfig: {
-            create: [
-              {
-                userId: body.userId,
-                mark: '抽奖箱1',
-              },
-            ],
-          },
-        },
-        include: {
-          User: true,
-        },
-      });
-      return {
-        code: 1,
-        msg: '首次签到成功',
-        data: sing,
-      };
-    } catch (e) {
-      return {
-        code: 2,
-        msg: '没有该用户',
-        data: null,
-      };
-    }
+    return { msg: '没有找到该用户' };
   }
 }

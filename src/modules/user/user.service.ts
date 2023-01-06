@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PrismaService } from '../../prisma.service';
 import { Repository } from 'typeorm';
-import { User } from '../../typeorm/users/user.entity';
-import { Authenticate } from '../../typeorm/users/authenticate.entity';
+import { User } from '../../typeorm/users/user/user.entity';
+import { Authenticate } from '../../typeorm/users/auth/authenticate.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    private readonly prisma: PrismaService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     @InjectRepository(Authenticate)
