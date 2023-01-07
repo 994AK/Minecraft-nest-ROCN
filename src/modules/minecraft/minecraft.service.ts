@@ -162,7 +162,11 @@ export class MinecraftService {
     //签到日志
     await this.signDailyLog.save(signLog);
     return {
-      msg: '你已经签到了' + updateSign.numSign + '天 ' + await signRewardFn(userSign),
+      msg:
+        '你已经签到了' +
+        updateSign.numSign +
+        '天 ' +
+        (await signRewardFn(userSign)),
     };
   }
 
