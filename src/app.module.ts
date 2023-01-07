@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { GirlModule } from './modules/girl/girl.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MinecraftModule } from './modules/minecraft/minecraft.module';
@@ -20,7 +19,7 @@ const TypeOrm = TypeOrmModule.forRoot({
 });
 
 @Module({
-  imports: [GirlModule, UserModule,AuthModule, MinecraftModule, TypeOrm],
+  imports: [UserModule, AuthModule, MinecraftModule, TypeOrm],
   controllers: [],
   providers: [],
 })

@@ -92,7 +92,7 @@ export class AuthService {
     const secret = this.config.get('JWT_SECRET_KEY');
 
     const token = await this.jwt.signAsync(payload, {
-      expiresIn: '15m',
+      // expiresIn: '15m', //可选,如果没设置就不会过期
       secret: secret,
     });
 
