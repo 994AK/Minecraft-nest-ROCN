@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { queryFull } from 'minecraft-server-util';
-import { PrismaService } from '../../prisma.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, DailyCheckInsEntity, SignDailyLog } from './typeorm';
+import {
+  User,
+  DailyCheckInsEntity,
+  SignDailyLog,
+  SignDailyConfig,
+} from './typeorm';
 import { Repository } from 'typeorm';
-
-import { SignMinecraftDto } from './dto/sign-minecraft.dto';
+import { SignMinecraftDto, SignConfigMinecraftDto } from './dto/sign-minecraft.dto';
 
 @Injectable()
 export class MinecraftService {
   constructor(
-    private readonly prisma: PrismaService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
 
@@ -19,6 +21,9 @@ export class MinecraftService {
 
     @InjectRepository(SignDailyLog)
     private signDailyLog: Repository<SignDailyLog>,
+
+    @InjectRepository(SignDailyConfig)
+    private signDailyConfig: Repository<SignDailyConfig>,
   ) {}
   async getMinecraftState() {
     const options = {
@@ -52,6 +57,7 @@ export class MinecraftService {
     }
   }
 
+  // 签到
   async getMinecraftSign({
     userId,
     notes,
@@ -120,5 +126,18 @@ export class MinecraftService {
       data: updateSign,
       msg: '你已经签到了' + updateSign.numSign + '天',
     };
+  }
+
+  // 添加签到奖励
+  async postSignConfigSave(data: SignConfigMinecraftDto) {
+    const config = new SignDailyConfig();
+    config.signId = data.signId;
+    config.signNum = data.signNum;
+    config.signCondition = data.signCondition; //天数
+    config.signName = data.signName;
+    config.typeSignConfig = data.typeSignConfig; // 0 代表物品; 1 代表指令
+    config.signCmiDirectives = data.signCmiDirectives || null;
+
+    return { data: await this.signDailyConfig.save(config) };
   }
 }

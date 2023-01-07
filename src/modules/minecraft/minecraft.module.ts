@@ -1,15 +1,24 @@
 import { Module } from '@nestjs/common';
 import { MinecraftController } from './minecraft.controller';
 import { MinecraftService } from './minecraft.service';
-import { PrismaService } from '../../prisma.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User, DailyCheckInsEntity, SignDailyLog } from './typeorm'
+import {
+  User,
+  DailyCheckInsEntity,
+  SignDailyLog,
+  SignDailyConfig,
+} from './typeorm';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, DailyCheckInsEntity, SignDailyLog]),
+    TypeOrmModule.forFeature([
+      User,
+      DailyCheckInsEntity,
+      SignDailyLog,
+      SignDailyConfig,
+    ]),
   ],
   controllers: [MinecraftController],
-  providers: [MinecraftService, PrismaService],
+  providers: [MinecraftService],
 })
 export class MinecraftModule {}
