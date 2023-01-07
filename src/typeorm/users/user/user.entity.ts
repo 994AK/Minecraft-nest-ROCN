@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 import { DailyCheckInsEntity } from '../sign/daily_check_ins.entity';
+import { SignDailyLog } from '../sign/sign_daily_log';
 
 @Entity()
 export class User {
@@ -19,4 +20,8 @@ export class User {
     (dailyCheckInsEntity) => dailyCheckInsEntity.user,
   )
   dailyCheckInsEntity: DailyCheckInsEntity[];
+
+  // 关联SignDailyLog表
+  @OneToMany(() => SignDailyLog, (signDailyLog) => signDailyLog.user)
+  signDailyLog: SignDailyLog[];
 }

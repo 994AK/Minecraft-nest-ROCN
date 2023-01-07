@@ -6,4 +6,8 @@ export class SignMinecraftDto {
   //签到留言
   @IsString()
   notes: string;
+
+  signEquipment?: string;
+
+  signIp?: string;
 }

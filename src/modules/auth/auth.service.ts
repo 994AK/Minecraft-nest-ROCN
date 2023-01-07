@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { User } from '../../typeorm/users/user/user.entity';
-import { Authenticate } from '../../typeorm/users/auth/authenticate.entity';
+import { Authenticate } from '../../typeorm/users/authenticate/authenticate.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 

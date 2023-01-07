@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Ip } from '@nestjs/common';
 import { MinecraftService } from './minecraft.service';
 import { SignMinecraftDto } from './dto/sign-minecraft.dto';
+import { JwtGuard } from '../auth/guard/jwt.guard';
 @Controller('minecraft')
 export class MinecraftController {
   constructor(private readonly userService: MinecraftService) {}
@@ -13,7 +14,11 @@ export class MinecraftController {
 
   //服务器签到状态
   @Post('sign')
-  getMinecraftSign(@Body() body: SignMinecraftDto) {
-    return this.userService.getMinecraftSign(body);
+  @UseGuards(JwtGuard)
+  getMinecraftSign(@Ip() ip, @Body() body: SignMinecraftDto) {
+    return this.userService.getMinecraftSign({
+      ...body,
+      signIp: ip,
+    });
   }
 }

@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { queryFull } from 'minecraft-server-util';
 import { PrismaService } from '../../prisma.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../../typeorm/users/user/user.entity';
-import { DailyCheckInsEntity } from '../../typeorm/users/sign/daily_check_ins.entity';
+import { User, DailyCheckInsEntity, SignDailyLog } from './typeorm';
 import { Repository } from 'typeorm';
+
+import { SignMinecraftDto } from './dto/sign-minecraft.dto';
 
 @Injectable()
 export class MinecraftService {
@@ -15,6 +16,9 @@ export class MinecraftService {
 
     @InjectRepository(DailyCheckInsEntity)
     private dailyEntityRepository: Repository<DailyCheckInsEntity>,
+
+    @InjectRepository(SignDailyLog)
+    private signDailyLog: Repository<SignDailyLog>,
   ) {}
   async getMinecraftState() {
     const options = {
@@ -48,58 +52,73 @@ export class MinecraftService {
     }
   }
 
-  async getMinecraftSign({ userId, notes }: { userId: number; notes: string }) {
+  async getMinecraftSign({
+    userId,
+    notes,
+    signEquipment,
+    signIp,
+  }: SignMinecraftDto) {
+    //时间处理方法
+    function date(date) {
+      //签到日期
+      const yesterday = new Date(Date.parse(date));
+      //今天
+      const today = new Date(Date.now());
+
+      return Number(today.getDate()) > Number(yesterday.getDate());
+    }
+
+    //签到送的积分数量
+    const signIntegral = 100;
+
     //查询到用户
     const user = await this.usersRepository.findOneBy({ id: userId });
 
+    //查询不到用户
+    if (!user) return { msg: '没有找到该用户' };
+
+    //表
+    const daily = new DailyCheckInsEntity();
+    const signLog = new SignDailyLog();
+
+    signLog.user = user;
+    signLog.notes = notes;
+    signLog.signIntegral = signIntegral;
+    signLog.signEquipment = signEquipment;
+    signLog.signIp = signIp;
+
     //查询到用户进行签到处理
-    if (user) {
-      const userSign = await this.dailyEntityRepository.findOne({
-        where: { user: user },
-        relations: {
-          user: true,
-        },
-      });
+    const userSign = await this.dailyEntityRepository.findOne({
+      where: { user: user },
+      relations: {
+        user: true,
+      },
+    });
 
-      const daily = new DailyCheckInsEntity();
-
-      //首次签到 - 没有记录的
-      if (!userSign) {
-        daily.numSign = 1;
-        daily.notes = notes;
-        daily.user = user;
-        await this.dailyEntityRepository.save(daily);
-        return { data: user, msg: '签到成功' };
-      }
-
-      //有签到信息
-      if (userSign) {
-        //处理是否符合今天的日期
-        const date = (date) => {
-          //签到日期
-          const yesterday = new Date(Date.parse(date));
-          //今天
-          const today = new Date(Date.now());
-
-          return Number(today.getDate()) > Number(yesterday.getDate());
-        };
-
-        // 判断今天是否签到了
-        if (!date(userSign.updatedDate)) return { msg: '今天你已经签到了' };
-
-        userSign.numSign = userSign.numSign + 1;
-        userSign.notes = notes;
-
-        //更新数据
-        const updateSign = await this.dailyEntityRepository.save(userSign);
-
-        return {
-          data: updateSign,
-          msg: '你已经签到了' + updateSign.numSign + '天',
-        };
-      }
+    //首次签到 - 没有记录的
+    if (!userSign) {
+      daily.numSign = 1;
+      daily.notes = notes;
+      daily.user = user;
+      await this.dailyEntityRepository.save(daily);
+      //签到日志
+      await this.signDailyLog.save(signLog);
+      return { data: user, msg: '签到成功' };
     }
 
-    return { msg: '没有找到该用户' };
+    if (!date(userSign.updatedDate)) return { msg: '今天你已经签到了' };
+
+    userSign.numSign = userSign.numSign + 1;
+    userSign.notes = notes;
+
+    //更新数据
+    const updateSign = await this.dailyEntityRepository.save(userSign);
+    //签到日志
+    await this.signDailyLog.save(signLog);
+
+    return {
+      data: updateSign,
+      msg: '你已经签到了' + updateSign.numSign + '天',
+    };
   }
 }

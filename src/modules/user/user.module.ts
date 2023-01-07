@@ -4,7 +4,7 @@ import { UserService } from './user.service';
 import { PrismaService } from '../../prisma.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../typeorm/users/user/user.entity';
-import { Authenticate } from '../../typeorm/users/auth/authenticate.entity';
+import { Authenticate } from '../../typeorm/users/authenticate/authenticate.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Authenticate])],

@@ -3,11 +3,12 @@ import { MinecraftController } from './minecraft.controller';
 import { MinecraftService } from './minecraft.service';
 import { PrismaService } from '../../prisma.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../../typeorm/users/user/user.entity';
-import { DailyCheckInsEntity} from "../../typeorm/users/sign/daily_check_ins.entity";
+import { User, DailyCheckInsEntity, SignDailyLog } from './typeorm'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, DailyCheckInsEntity])],
+  imports: [
+    TypeOrmModule.forFeature([User, DailyCheckInsEntity, SignDailyLog]),
+  ],
   controllers: [MinecraftController],
   providers: [MinecraftService, PrismaService],
 })
