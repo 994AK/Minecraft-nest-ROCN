@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Ip } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Ip, Req } from '@nestjs/common';
 import { MinecraftService } from './minecraft.service';
 import {
   SignMinecraftDto,
@@ -18,10 +18,12 @@ export class MinecraftController {
   //服务器签到状态
   @Post('sign')
   @UseGuards(JwtGuard)
-  getMinecraftSign(@Ip() ip, @Body() body: SignMinecraftDto) {
+  getMinecraftSign(@Req() req, @Ip() ip, @Body() body: SignMinecraftDto) {
+    console.log(req.user, '22222');
     return this.mcService.getMinecraftSign({
       ...body,
       signIp: ip,
+      userId: Number(req.user.id),
     });
   }
 

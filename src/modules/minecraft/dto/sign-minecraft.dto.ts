@@ -1,7 +1,6 @@
-import { IsString, IsInt, IsNumber } from 'class-validator';
+import { IsString, IsNumber } from 'class-validator';
 export class SignMinecraftDto {
-  @IsInt()
-  userId: number;
+  userId?: number;
 
   //签到留言
   @IsString()

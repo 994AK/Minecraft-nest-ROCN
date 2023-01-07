@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { queryFull } from 'minecraft-server-util';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
+import { Rcon } from 'rcon-client';
 import {
   User,
   DailyCheckInsEntity,
@@ -8,7 +10,10 @@ import {
   SignDailyConfig,
 } from './typeorm';
 import { Repository } from 'typeorm';
-import { SignMinecraftDto, SignConfigMinecraftDto } from './dto/sign-minecraft.dto';
+import {
+  SignMinecraftDto,
+  SignConfigMinecraftDto,
+} from './dto/sign-minecraft.dto';
 
 @Injectable()
 export class MinecraftService {
@@ -24,6 +29,8 @@ export class MinecraftService {
 
     @InjectRepository(SignDailyConfig)
     private signDailyConfig: Repository<SignDailyConfig>,
+
+    private config: ConfigService,
   ) {}
   async getMinecraftState() {
     const options = {
@@ -33,8 +40,8 @@ export class MinecraftService {
 
     try {
       const { version, software, players } = await queryFull(
-        '66aserver.zhongbai233.top',
-        25565,
+        this.config.get('MC_HOST'),
+        this.config.get('MC_PORT'),
         options,
       );
       if (version) {
@@ -65,20 +72,53 @@ export class MinecraftService {
     signIp,
   }: SignMinecraftDto) {
     //时间处理方法
-    function date(date) {
+    const date = (date) => {
       //签到日期
       const yesterday = new Date(Date.parse(date));
       //今天
       const today = new Date(Date.now());
 
       return Number(today.getDate()) > Number(yesterday.getDate());
-    }
+    };
+    const rcon = await Rcon.connect({
+      host: this.config.get('MC_HOST'),
+      port: this.config.get('MC_RCON_PORT'),
+      password: this.config.get('MC_RCON_PASSWORD'),
+    });
 
-    //签到送的积分数量
-    const signIntegral = 100;
+    //奖励方法
+    const signRewardFn = async ({ numSign, user }) => {
+      const signReward = await this.signDailyConfig.findOne({
+        where: {
+          signCondition: numSign,
+        },
+      });
+
+      // 服务器终端操作
+      // 0物品赠送 1指令赠送
+      if (signReward.typeSignConfig === 0) {
+        // 有cmi插件 物品赠送
+        const cmi = `give ${signReward.signId} ${signReward.signNum} ${user.name}`;
+        await rcon.send(cmi);
+
+        await rcon.end(); //关闭
+        return `获得 ${signReward.signName} ${signReward.signNum}`;
+      }
+    };
+
+    //查询玩家是否在线
+    const gamerFn = async ({ name }) => {
+      const list = await rcon.send('list');
+      if (new RegExp(name).test(list)) return true;
+    };
 
     //查询到用户
     const user = await this.usersRepository.findOneBy({ id: userId });
+
+    //查询玩家在线状态
+    const showGamer = await gamerFn(user);
+
+    if (!showGamer) return { msg: '签到失败,游戏不在线' };
 
     //查询不到用户
     if (!user) return { msg: '没有找到该用户' };
@@ -89,7 +129,7 @@ export class MinecraftService {
 
     signLog.user = user;
     signLog.notes = notes;
-    signLog.signIntegral = signIntegral;
+    signLog.signIntegral = 100;
     signLog.signEquipment = signEquipment;
     signLog.signIp = signIp;
 
@@ -106,10 +146,10 @@ export class MinecraftService {
       daily.numSign = 1;
       daily.notes = notes;
       daily.user = user;
-      await this.dailyEntityRepository.save(daily);
-      //签到日志
+      const dailyUser = await this.dailyEntityRepository.save(daily);
       await this.signDailyLog.save(signLog);
-      return { data: user, msg: '签到成功' };
+      //奖励表
+      return { msg: '签到成功 ' + (await signRewardFn(dailyUser)) };
     }
 
     if (!date(userSign.updatedDate)) return { msg: '今天你已经签到了' };
@@ -121,10 +161,8 @@ export class MinecraftService {
     const updateSign = await this.dailyEntityRepository.save(userSign);
     //签到日志
     await this.signDailyLog.save(signLog);
-
     return {
-      data: updateSign,
-      msg: '你已经签到了' + updateSign.numSign + '天',
+      msg: '你已经签到了' + updateSign.numSign + '天 ' + await signRewardFn(userSign),
     };
   }
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MinecraftController } from './minecraft.controller';
 import { MinecraftService } from './minecraft.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import {
   User,
   DailyCheckInsEntity,
@@ -19,6 +20,6 @@ import {
     ]),
   ],
   controllers: [MinecraftController],
-  providers: [MinecraftService],
+  providers: [MinecraftService, ConfigService],
 })
 export class MinecraftModule {}
