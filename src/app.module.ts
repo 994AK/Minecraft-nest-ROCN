@@ -5,6 +5,10 @@ import { MinecraftModule } from './modules/minecraft/minecraft.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { config } from 'dotenv';
+config();
+
+console.log(process.env.MYSQL_HOST, process.env.MYSQL_USERNAME);
 
 const TypeOrm = TypeOrmModule.forRoot({
   type: 'mysql',
@@ -16,14 +20,12 @@ const TypeOrm = TypeOrmModule.forRoot({
   entities: [],
   autoLoadEntities: true,
   // 不应在生产中使用 - 打包时候记得关闭
-  synchronize: false,
+  synchronize: true,
 });
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true
-    }),
+    ConfigModule.forRoot(),
     UserModule,
     AuthModule,
     MinecraftModule,
