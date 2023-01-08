@@ -30,6 +30,9 @@ export class DailyCheckInsEntity {
   @Column()
   numSign: number;
 
+  @Column({ default: false })
+  signShow: boolean;
+
   //关联user表
   @ManyToOne(() => User, (user) => user.dailyCheckInsEntity)
   user: User;

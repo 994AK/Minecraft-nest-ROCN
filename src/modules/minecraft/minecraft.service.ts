@@ -9,7 +9,7 @@ import {
   SignDailyLog,
   SignDailyConfig,
 } from './typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThanOrEqual } from 'typeorm';
 import {
   SignMinecraftDto,
   SignConfigMinecraftDto,
@@ -38,30 +38,29 @@ export class MinecraftService {
       enableSRV: true, // SRV record lookup
     };
 
-    try {
-      const { version, software, players } = await queryFull(
-        this.config.get('MC_HOST'),
-        this.config.get('MC_PORT'),
-        options,
-      );
-      if (version) {
-        return {
-          code: '1',
-          data: {
-            version,
-            players,
-            software,
-          },
-          msg: '获取服务器请求成功',
-        };
-      }
-    } catch (e) {
+    console.log(this.config.get('MC_HOST'), Number(this.config.get('MC_PORT')));
+
+    const { version, software, players } = await queryFull(
+      this.config.get('MC_HOST'),
+      Number(this.config.get('MC_PORT')),
+      options,
+    );
+
+    if (version) {
       return {
-        code: '2',
-        data: null,
-        msg: '获取失败了',
+        data: {
+          version,
+          players,
+          software,
+        },
+        msg: '获取服务器请求成功',
       };
     }
+
+    return {
+      data: null,
+      msg: '获取失败了',
+    };
   }
 
   // 签到
@@ -72,14 +71,6 @@ export class MinecraftService {
     signIp,
   }: SignMinecraftDto) {
     //时间处理方法
-    const date = (date) => {
-      //签到日期
-      const yesterday = new Date(Date.parse(date));
-      //今天
-      const today = new Date(Date.now());
-
-      return Number(today.getDate()) > Number(yesterday.getDate());
-    };
     const rcon = await Rcon.connect({
       host: this.config.get('MC_HOST'),
       port: this.config.get('MC_RCON_PORT'),
@@ -88,9 +79,10 @@ export class MinecraftService {
 
     //奖励方法
     const signRewardFn = async ({ numSign, user }) => {
+      console.log(numSign);
       const signReward = await this.signDailyConfig.findOne({
         where: {
-          signCondition: numSign,
+          signCondition: LessThanOrEqual(numSign),
         },
       });
 
@@ -146,16 +138,18 @@ export class MinecraftService {
       daily.numSign = 1;
       daily.notes = notes;
       daily.user = user;
+      daily.signShow = true;
       const dailyUser = await this.dailyEntityRepository.save(daily);
       await this.signDailyLog.save(signLog);
       //奖励表
       return { msg: '签到成功 ' + (await signRewardFn(dailyUser)) };
     }
 
-    if (!date(userSign.updatedDate)) return { msg: '今天你已经签到了' };
+    if (userSign.signShow) return { msg: '今天你已经签到了' };
 
     userSign.numSign = userSign.numSign + 1;
     userSign.notes = notes;
+    userSign.signShow = true;
 
     //更新数据
     const updateSign = await this.dailyEntityRepository.save(userSign);

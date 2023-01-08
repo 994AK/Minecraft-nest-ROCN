@@ -63,11 +63,12 @@ export class AuthService {
         username: data.name,
         password: data.password,
       },
-      // 返回关系表
       relations: {
         user: true,
       },
     });
+
+    if (!findUser) return { msg: '该用户还没注册' };
 
     const Token = await this.signToken(findUser.user.id, findUser.user.email);
 

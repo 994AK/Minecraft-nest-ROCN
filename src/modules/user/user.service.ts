@@ -14,13 +14,16 @@ export class UserService {
   ) {}
 
   //查询用户信息
-  async findUserById(query: { id: string }) {
-    const findUser = await this.usersRepository.find({
+  async findUserById(query) {
+    const findUser = await this.usersRepository.findOne({
       where: {
         id: Number(query.id),
       },
+      relations: {
+        dailyCheckInsEntity: true,
+      },
     });
 
-    return findUser.length ? { data: findUser[0] } : { msg: '查询不到' };
+    return findUser ? { data: findUser } : { msg: '查询不到' };
   }
 }

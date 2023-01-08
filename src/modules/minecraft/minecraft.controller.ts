@@ -19,7 +19,6 @@ export class MinecraftController {
   @Post('sign')
   @UseGuards(JwtGuard)
   getMinecraftSign(@Req() req, @Ip() ip, @Body() body: SignMinecraftDto) {
-    console.log(req.user, '22222');
     return this.mcService.getMinecraftSign({
       ...body,
       signIp: ip,
