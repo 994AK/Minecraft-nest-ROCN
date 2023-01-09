@@ -37,9 +37,6 @@ export class MinecraftService {
       sessionID: 1, // a random 32-bit signed number, optional
       enableSRV: true, // SRV record lookup
     };
-
-    console.log(this.config.get('MC_HOST'), Number(this.config.get('MC_PORT')));
-
     const { version, software, players } = await queryFull(
       this.config.get('MC_HOST'),
       Number(this.config.get('MC_PORT')),
@@ -79,22 +76,29 @@ export class MinecraftService {
 
     //奖励方法
     const signRewardFn = async ({ numSign, user }) => {
-      console.log(numSign);
-      const signReward = await this.signDailyConfig.findOne({
-        where: {
-          signCondition: LessThanOrEqual(numSign),
-        },
+      const signReward = await this.signDailyConfig.find({
+        where: [
+          {
+            signCondition: numSign,
+          },
+          {
+            signCondition: LessThanOrEqual(numSign),
+          },
+        ],
       });
 
+      const findNum = signReward.find((val) => val.signCondition === numSign);
+      const findArticle = signReward[0];
+      const findSign = findNum || findArticle;
       // 服务器终端操作
       // 0物品赠送 1指令赠送
-      if (signReward.typeSignConfig === 0) {
+      if (findSign.typeSignConfig === 0) {
         // 有cmi插件 物品赠送
-        const cmi = `give ${signReward.signId} ${signReward.signNum} ${user.name}`;
+        const cmi = `give ${findSign.signId} ${findSign.signNum} ${user.name}`;
         await rcon.send(cmi);
 
         await rcon.end(); //关闭
-        return `获得 ${signReward.signName} ${signReward.signNum}`;
+        return `获得 ${findSign.signName} ${findSign.signNum}`;
       }
     };
 
@@ -147,6 +151,9 @@ export class MinecraftService {
 
     if (userSign.signShow) return { msg: '今天你已经签到了' };
 
+    //奖励通过后，再+天数
+    const reward = await signRewardFn(userSign);
+
     userSign.numSign = userSign.numSign + 1;
     userSign.notes = notes;
     userSign.signShow = true;
@@ -156,11 +163,7 @@ export class MinecraftService {
     //签到日志
     await this.signDailyLog.save(signLog);
     return {
-      msg:
-        '你已经签到了' +
-        updateSign.numSign +
-        '天 ' +
-        (await signRewardFn(userSign)),
+      msg: '你已经签到了' + updateSign.numSign + '天 ' + reward,
     };
   }
 
