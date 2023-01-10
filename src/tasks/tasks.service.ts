@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, Interval, Timeout } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { User, DailyCheckInsEntity } from './typeorm';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { raw } from 'express';
 
 @Injectable()
 export class TasksService {
@@ -42,14 +41,4 @@ export class TasksService {
         }
       });
   }
-
-  // @Interval(10000)
-  // handleInterval() {
-  //   this.logger.debug('Called every 10 seconds');
-  // }
-  //
-  // @Timeout(5000)
-  // handleTimeout() {
-  //   this.logger.debug('Called once after 5 seconds');
-  // }
 }
