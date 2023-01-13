@@ -1,6 +1,7 @@
-import { Controller, Get, Req, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Req, Body, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtGuard } from '../auth/guard/jwt.guard';
+import { FindUserDto } from './dto/find-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -8,10 +9,22 @@ export class UserController {
 
   //查询用户信息
   @Get('findUserById')
-
   //jwt鉴权
   @UseGuards(JwtGuard)
   async findUserById(@Req() req) {
     return this.userService.findUserById(req.user);
+  }
+
+  //修改用户信息
+  @Post('fineMultipleUser')
+  @UseGuards(JwtGuard)
+  async fineMultipleUser(@Body() Body) {
+    return this.userService.fineMultipleUser(Body);
+  }
+
+  @Post('updateFineUser')
+  @UseGuards(JwtGuard)
+  async updateFineUser(@Req() req, @Body() Body) {
+    return this.userService.updateFineUser({ ...req.user, ...Body });
   }
 }

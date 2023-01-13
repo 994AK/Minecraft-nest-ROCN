@@ -14,6 +14,14 @@ export class User {
   @Column()
   email: string;
 
+  //用户绑定游戏名
+  @Column({ nullable: true })
+  gamesName: string;
+
+  //用户简介
+  @Column({ nullable: true })
+  info: string;
+
   // 关联dailyCheckInsEntity表
   @OneToMany(
     () => DailyCheckInsEntity,
