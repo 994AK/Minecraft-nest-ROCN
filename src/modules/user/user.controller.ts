@@ -15,7 +15,6 @@ export class UserController {
     return this.userService.findUserById(req.user);
   }
 
-
   @Post('fineMultipleUser')
   async fineMultipleUser(@Body() Body) {
     return this.userService.fineMultipleUser(Body);
