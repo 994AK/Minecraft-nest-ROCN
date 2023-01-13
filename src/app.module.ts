@@ -10,31 +10,31 @@ import { TasksModule } from './tasks/tasks.module';
 import { config } from 'dotenv';
 config();
 
-const TypeOrm = TypeOrmModule.forRoot({
-  type: 'mysql',
-  host: '127.0.0.1',
-  port: 3306,
-  username: 'root',
-  password: '123456',
-  database: 'typeorm',
-  entities: [],
-  autoLoadEntities: true,
-  // 不应在生产中使用 - 打包时候记得关闭
-  synchronize: true,
-});
-
 // const TypeOrm = TypeOrmModule.forRoot({
 //   type: 'mysql',
-//   host: process.env.MYSQL_HOST,
-//   port: Number(process.env.MYSQL_PORT),
-//   username: process.env.MYSQL_USERNAME,
-//   password: process.env.MYSQL_PASSWORD,
-//   database: process.env.MYSQL_DATABASE,
+//   host: '127.0.0.1',
+//   port: 3306,
+//   username: 'root',
+//   password: '123456',
+//   database: 'typeorm',
 //   entities: [],
 //   autoLoadEntities: true,
 //   // 不应在生产中使用 - 打包时候记得关闭
 //   synchronize: true,
 // });
+
+const TypeOrm = TypeOrmModule.forRoot({
+  type: 'mysql',
+  host: process.env.MYSQL_HOST,
+  port: Number(process.env.MYSQL_PORT),
+  username: process.env.MYSQL_USERNAME,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  entities: [],
+  autoLoadEntities: true,
+  // 不应在生产中使用 - 打包时候记得关闭
+  synchronize: true,
+});
 
 @Module({
   imports: [

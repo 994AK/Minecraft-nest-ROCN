@@ -15,13 +15,13 @@ export class UserController {
     return this.userService.findUserById(req.user);
   }
 
-  //修改用户信息
+
   @Post('fineMultipleUser')
-  @UseGuards(JwtGuard)
   async fineMultipleUser(@Body() Body) {
     return this.userService.fineMultipleUser(Body);
   }
 
+  //修改用户信息
   @Post('updateFineUser')
   @UseGuards(JwtGuard)
   async updateFineUser(@Req() req, @Body() Body) {
