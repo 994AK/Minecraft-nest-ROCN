@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../typeorm/users/user/user.entity';
@@ -24,7 +24,10 @@ export class UserService {
       },
     });
 
-    return findUser ? { data: findUser } : { msg: '查询不到' };
+    if (!findUser) {
+      throw new BadRequestException('查询不到用户信息');
+    }
+    return findUser;
   }
 
   //查询多个用户信息
@@ -34,11 +37,16 @@ export class UserService {
         gamesName: item,
       };
     });
-    return {
-      data: await this.usersRepository.find({
-        where: [...gamesName],
-      }),
-    };
+
+    const findList = await this.usersRepository.find({
+      where: [...gamesName],
+    });
+
+    if (findList.length === 0) {
+      throw new BadRequestException('查询不到用户');
+    }
+
+    return findList;
   }
 
   async updateFineUser(Body) {
@@ -50,7 +58,7 @@ export class UserService {
     });
 
     if (showGamesName) {
-      return { msg: '该游戏id已绑定' };
+      throw new BadRequestException('该游戏id已绑定');
     }
 
     const fineUser = await this.usersRepository.findOne({
@@ -62,9 +70,6 @@ export class UserService {
     fineUser.gamesName = Body.gamesName;
     fineUser.info = Body.info;
 
-    return {
-      data: await this.usersRepository.save(fineUser),
-      msg: '绑定成功'
-    };
+    return await this.usersRepository.save(fineUser);
   }
 }

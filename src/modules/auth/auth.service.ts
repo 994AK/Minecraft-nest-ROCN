@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -47,12 +47,10 @@ export class AuthService {
       authenticate.user = user;
       await this.authenticateRepository.save(authenticate);
 
-      return {
-        data: saveUser,
-        msg: '用户注册成功',
-      };
+      return saveUser;
     }
-    return { msg: '用户已存在' };
+
+    throw new BadRequestException('用户存在');
   }
 
   //用户登陆
@@ -68,16 +66,11 @@ export class AuthService {
       },
     });
 
-    if (!findUser) return { msg: '该用户还没注册' };
+    if (!findUser) {
+      throw new BadRequestException('请检查用户名或密码');
+    }
 
-    const Token = await this.signToken(findUser.user.id, findUser.user.email);
-
-    return findUser
-      ? {
-          msg: '登陆成功',
-          data: Token,
-        }
-      : { msg: '请检查用户名或密码' };
+    return await this.signToken(findUser.user.id, findUser.user.email);
   }
 
   //token

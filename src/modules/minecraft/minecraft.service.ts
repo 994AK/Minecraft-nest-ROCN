@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { queryFull } from 'minecraft-server-util';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -45,19 +45,13 @@ export class MinecraftService {
 
     if (version) {
       return {
-        data: {
-          version,
-          players,
-          software,
-        },
-        msg: '获取服务器请求成功',
+        version,
+        players,
+        software,
       };
     }
 
-    return {
-      data: null,
-      msg: '获取失败了',
-    };
+    throw new BadRequestException('获取失败');
   }
 
   // 签到
