@@ -36,8 +36,6 @@ export class TasksService {
             where: { id: item.id },
           });
           signShow.signShow = false;
-          // 签到状态超过一天就变成未签到状态
-          console.log(await this.dailyEntityRepository.save(signShow));;
         }
       });
   }

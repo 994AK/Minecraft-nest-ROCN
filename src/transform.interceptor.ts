@@ -23,7 +23,7 @@ export class TransformInterceptor<T>
   ): Observable<Response<T>> {
     return next.handle().pipe(
       map((data) => ({
-        code: 200,
+        code: data.code || 200,
         data: data || null,
         msg: '请求成功',
       })),

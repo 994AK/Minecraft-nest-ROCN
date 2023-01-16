@@ -58,7 +58,7 @@ export class UserService {
     });
 
     if (showGamesName) {
-      throw new BadRequestException('该游戏id已绑定');
+      return { code: -1, msg: '该用户已有人绑定了' };
     }
 
     const fineUser = await this.usersRepository.findOne({
@@ -70,6 +70,6 @@ export class UserService {
     fineUser.gamesName = Body.gamesName;
     fineUser.info = Body.info;
 
-    return await this.usersRepository.save(fineUser);
+    return { data: await this.usersRepository.save(fineUser) };
   }
 }

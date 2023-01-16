@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MinecraftModule } from './modules/minecraft/minecraft.module';
 import { TasksModule } from './tasks/tasks.module';
 import { config } from 'dotenv';
+import { UploadModule } from './modules/upload/upload.module';
 config();
 
 // const TypeOrm = TypeOrmModule.forRoot({
@@ -45,6 +46,7 @@ const TypeOrm = TypeOrmModule.forRoot({
     MinecraftModule,
     TypeOrm,
     TasksModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],

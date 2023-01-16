@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Req, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Req,
+  Body,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { FindUserDto } from './dto/find-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {

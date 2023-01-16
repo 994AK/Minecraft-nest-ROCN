@@ -3,7 +3,6 @@ const path = require('path');
 const webpack = require('webpack');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-console.log('start build');
 module.exports = {
   mode: 'production',
   entry: './src/main',
