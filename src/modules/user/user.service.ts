@@ -57,7 +57,7 @@ export class UserService {
       },
     });
 
-    if (showGamesName) {
+    if (showGamesName && Body.id !== showGamesName?.id) {
       return { code: -1, msg: '该用户已有人绑定了' };
     }
 
@@ -66,8 +66,6 @@ export class UserService {
         id: Body.id,
       },
     });
-
-    console.log(Body.imageUrl);
 
     fineUser.gamesName = Body.gamesName;
     fineUser.info = Body.info;
