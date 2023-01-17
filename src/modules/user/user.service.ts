@@ -67,8 +67,11 @@ export class UserService {
       },
     });
 
+    console.log(Body.imageUrl);
+
     fineUser.gamesName = Body.gamesName;
     fineUser.info = Body.info;
+    fineUser.imageUrl = Body.imageUrl;
 
     return { data: await this.usersRepository.save(fineUser) };
   }

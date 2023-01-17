@@ -22,6 +22,9 @@ export class User {
   @Column({ nullable: true })
   info: string;
 
+  @Column({ nullable: true })
+  imageUrl: string;
+
   // 关联dailyCheckInsEntity表
   @OneToMany(
     () => DailyCheckInsEntity,
